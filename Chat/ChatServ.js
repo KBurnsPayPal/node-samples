@@ -3,21 +3,43 @@ var net = require('net');
 var chatServer = net.createServer();
     clientList = [];
 
-chatServer.on('connection', function (client) {
+chatServer.on('connection', function(client) {
     client.name = client.remoteAddress + ":" + client.remotePort;
     client.write('Hi ' + client.name + '!\n');
+    console.log(client.name + ' joined');
     clientList.push(client);
 
-    client.on('data', function (data) {
-        broadcast(data, client)
-    })
+    client.on('data', function(data) {
+        console.log(client.name + " sent message");
+        broadcast(data, client);
+    });
+
+    client.end('end', function() {
+        console.log(client.name + ' left');
+        clientList.splice(clientList.indexOf(client), 1);
+    });
+
+    client.on('error', function(e) {
+        console.log(e);
+    });
 });
 
 function broadcast(message, client) {
+    var cleanup = [];
     for(var i=0;i<clientList.length;i+=1) {
         if (client !== clientList[i]) {
-            clientList[i].write(client.name + " says " + message)
+            if (clientList[i].writable) {
+                clientList[i].write(client.name + " says " + message)
+            } else {
+                console.write(client.name + " no longer valid");
+                cleanup.push(clientList[i]);
+                clientList[i].destroy()
+            }
         }
+    }
+        // Remove dead Nodes out of write loop to avoid trashing loop index
+    for (i=0;i<cleanup.length;i+=1) {
+        clientList.splice(clientList.indexOf(cleanup[i]), 1);
     }
 }
 
