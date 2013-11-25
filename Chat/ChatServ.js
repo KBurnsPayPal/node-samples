@@ -14,7 +14,7 @@ chatServer.on('connection', function(client) {
         broadcast(data, client);
     });
 
-    client.end('end', function() {
+    client.on('end', function() {
         console.log(client.name + ' left');
         clientList.splice(clientList.indexOf(client), 1);
     });
