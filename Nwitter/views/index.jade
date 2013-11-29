@@ -1,0 +1,9 @@
+extends layout
+
+block content
+    each nweet in nweets
+        .nweet
+            include partials/nweet
+    form(action='/send', method='post')
+        input(type='text', name='nweet')
+        input(type='submit', value='Nweet!')
